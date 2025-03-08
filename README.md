@@ -53,19 +53,6 @@
     docker compose up --build
     ```
 
-## Running Tests
-
-1. Ensure the virtual environment is activated.
-2. Install the dev requirements:
-    ```sh
-    pip install -r requirements-dev.txt
-    ```
-3. Run the tests with pytest:
-    ```sh
-    pytest --cov=./ --cov-report=html --cov-fail-under=50
-    ```
-4. View the coverage report by opening `htmlcov/index.html` in a browser.
-
 ## Accessing the Application
 
 -   The application will be available at `http://localhost:8000`.

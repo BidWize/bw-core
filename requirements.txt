@@ -57,6 +57,8 @@ mdurl==0.1.2
     # via markdown-it-py
 numpy==2.2.3
     # via -r requirements.in
+psycopg2-binary==2.9.10
+    # via -r requirements.in
 pydantic==2.10.6
     # via
     #   fastapi

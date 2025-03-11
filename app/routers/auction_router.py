@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from typing import List
-from app.models.auction import AuctionResponse, AuctionCreate, BidCreate, BidResponse
-from app.entities.auction import Auction, Bid
-from app.services.auction import (
+from app.models.auction_model import AuctionResponse, AuctionCreate, BidCreate, BidResponse
+from app.entities.auction_ent import AuctionBase, BidBase
+from app.services.auction_service import (
     get_all_auctions,
     get_auction_by_id,
     create_auction,

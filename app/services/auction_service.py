@@ -1,18 +1,19 @@
 from sqlmodel import Session, select
+from fastapi import HTTPException
 from datetime import datetime
-from app.entities.auction import Auction, Bid
-from app.models.auction import AuctionCreate, BidCreate
+from app.entities.auction_ent import AuctionBase, BidBase
+from app.models.auction_model import AuctionCreate, BidCreate
 
 def get_all_auctions(db: Session):
-    statement = select(Auction)
+    statement = select(AuctionBase)
     results = db.exec(statement)
     return results.all()
 
 def get_auction_by_id(db: Session, auction_id: int):
-    return db.get(Auction, auction_id)
+    return db.get(AuctionBase, auction_id)
 
 def create_auction(db: Session, auction_data: AuctionCreate):
-    new_auction = Auction(
+    new_auction = AuctionBase(
         title=auction_data.title,
         description=auction_data.description,
         start_time=auction_data.start_time,
@@ -27,11 +28,21 @@ def place_bid(db: Session, auction_id: int, bid_data: BidCreate):
     auction = get_auction_by_id(db, auction_id)
     if not auction:
         return None
-    new_bid = Bid(
+    if current_time := datetime.now() < auction.start_time:
+        raise HTTPException(
+            status_code=400,
+            detail="Auction has not started yet",
+        )
+    if current_time > auction.end_time:
+        raise HTTPException(
+            status_code=400,
+            detail="Auction has ended",
+        )
+    new_bid = BidBase(
+        user_id=bid_data.user_id,
         amount=bid_data.amount,
         bidder=bid_data.bidder,
-        bid_time=datetime.utcnow(),
-        auction_id=auction_id,
+        bid_time=datetime.now(),
     )
     db.add(new_bid)
     db.commit()

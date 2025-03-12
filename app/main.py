@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 
-from .routers import hello, auction_router, item_router, bid_router, user, auction
+from .routers import hello, auction_router, item_router, bid_router, user
 
 app = FastAPI()
 

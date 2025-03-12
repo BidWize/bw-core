@@ -1,50 +1,63 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel import Session, select
 from typing import List
-from app.models.item_model import ItemResponse, ItemCreate
-from app.entities.item_ent import Item
-from app.services.item_service import (
-    get_all_items,
-    get_item_by_id,
-    create_item,
-    update_item,
-    delete_item,
+
+from ..services.db import get_db
+from ..entities.item import Item, ItemCreate, ItemRead, ItemUpdate
+
+router = APIRouter(
+    prefix="/items",
+    tags=["items"],
 )
-from app.services.db import get_db
 
-router = APIRouter(prefix="/items", tags=["Items"])
 
-@router.get("/", response_model=List[ItemResponse])
-def list_items(db: Session = Depends(get_db)):
-    items = get_all_items(db)
+@router.post("/", response_model=ItemRead, status_code=status.HTTP_201_CREATED)
+def create_item(item: ItemCreate, db: Session = Depends(get_db)):
+    db_item = Item.model_validate(item)
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+
+@router.get("/", response_model=List[ItemRead])
+def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    items = db.exec(select(Item).offset(skip).limit(limit)).all()
     return items
 
-@router.get("/{item_id}", response_model=ItemResponse)
+
+@router.get("/{item_id}", response_model=ItemRead)
 def read_item(item_id: int, db: Session = Depends(get_db)):
-    item = get_item_by_id(db, item_id)
+    item = db.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
 
-@router.post("/", response_model=ItemResponse, status_code=201)
-def create_new_item(
-    item_data: ItemCreate, db: Session = Depends(get_db)
-):
-    item = create_item(db, item_data)
-    return item
 
-@router.put("/{item_id}", response_model=ItemResponse)
-def update_existing_item(
-    item_id: int, item_data: ItemCreate, db: Session = Depends(get_db)
+@router.patch("/{item_id}", response_model=ItemRead)
+def update_item(
+    item_id: int, item_update: ItemUpdate, db: Session = Depends(get_db)
 ):
-    updated_item = update_item(db, item_id, item_data)
-    if not updated_item:
+    db_item = db.get(Item, item_id)
+    if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-    return updated_item
+    
+    item_data = item_update.model_dump(exclude_unset=True)
+    for key, value in item_data.items():
+        setattr(db_item, key, value)
+    
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
 
-@router.delete("/{item_id}")
-def delete_existing_item(item_id: int, db: Session = Depends(get_db)):
-    result = delete_item(db, item_id)
-    if not result:
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_item(item_id: int, db: Session = Depends(get_db)):
+    db_item = db.get(Item, item_id)
+    if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-    return {"message": "Item successfully deleted"}
+    
+    db.delete(db_item)
+    db.commit()
+    return None

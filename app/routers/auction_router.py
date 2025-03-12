@@ -1,42 +1,70 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel import Session, select
 from typing import List
-from app.models.auction_model import AuctionResponse, AuctionCreate, BidCreate, BidResponse
-from app.entities.auction_ent import AuctionBase, BidBase
-from app.services.auction_service import (
-    get_all_auctions,
-    get_auction_by_id,
-    create_auction,
-    place_bid,
+
+from ..services.db import get_db
+from ..entities.auction import Auction, AuctionCreate, AuctionRead, AuctionUpdate
+
+router = APIRouter(
+    prefix="/auctions",
+    tags=["auctions"],
 )
-from app.services.db import get_db
 
-router = APIRouter(prefix="/auctions", tags=["Auctions"])
 
-@router.get("/", response_model=List[AuctionResponse])
-def list_auctions(db: Session = Depends(get_db)):
-    auctions = get_all_auctions(db)
+@router.post("/", response_model=AuctionRead, status_code=status.HTTP_201_CREATED)
+def create_auction(auction: AuctionCreate, db: Session = Depends(get_db)):
+    db_auction = Auction.model_validate(auction)
+    db.add(db_auction)
+    db.commit()
+    db.refresh(db_auction)
+    return db_auction
+
+
+@router.get("/", response_model=List[AuctionRead])
+def read_auctions(
+    skip: int = 0, limit: int = 100, active_only: bool = False, db: Session = Depends(get_db)
+):
+    query = select(Auction)
+    if active_only:
+        query = query.where(Auction.is_active == True)
+    
+    auctions = db.exec(query.offset(skip).limit(limit)).all()
     return auctions
 
-@router.get("/{auction_id}", response_model=AuctionResponse)
+
+@router.get("/{auction_id}", response_model=AuctionRead)
 def read_auction(auction_id: int, db: Session = Depends(get_db)):
-    auction = get_auction_by_id(db, auction_id)
+    auction = db.get(Auction, auction_id)
     if not auction:
         raise HTTPException(status_code=404, detail="Auction not found")
     return auction
 
-@router.post("/", response_model=AuctionResponse, status_code=201)
-def create_new_auction(
-    auction_data: AuctionCreate, db: Session = Depends(get_db)
-):
-    auction = create_auction(db, auction_data)
-    return auction
 
-@router.post("/{auction_id}/bids", response_model=BidResponse, status_code=201)
-def add_bid(
-    auction_id: int, bid_data: BidCreate, db: Session = Depends(get_db)
+@router.patch("/{auction_id}", response_model=AuctionRead)
+def update_auction(
+    auction_id: int, auction_update: AuctionUpdate, db: Session = Depends(get_db)
 ):
-    new_bid = place_bid(db, auction_id, bid_data)
-    if new_bid is None:
+    db_auction = db.get(Auction, auction_id)
+    if not db_auction:
         raise HTTPException(status_code=404, detail="Auction not found")
-    return new_bid
+    
+    auction_data = auction_update.model_dump(exclude_unset=True)
+    for key, value in auction_data.items():
+        setattr(db_auction, key, value)
+    
+    db.add(db_auction)
+    db.commit()
+    db.refresh(db_auction)
+    return db_auction
+
+
+@router.delete("/{auction_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_auction(auction_id: int, db: Session = Depends(get_db)):
+    db_auction = db.get(Auction, auction_id)
+    if not db_auction:
+        raise HTTPException(status_code=404, detail="Auction not found")
+    
+    db.delete(db_auction)
+    db.commit()
+    return None
+

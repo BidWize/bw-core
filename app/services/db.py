@@ -25,7 +25,7 @@ def create_db_and_tables():
     Create the database and tables.
     """
     # drop all tables first
-    # SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     print("Database and tables created")
     check_db()

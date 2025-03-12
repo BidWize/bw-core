@@ -1,5 +1,7 @@
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship
 from enum import Enum
+from typing import List
+
 
 class UserRole(str, Enum):
     BUYER = "buyer"
@@ -18,7 +20,8 @@ class User(SQLModel, table=True):
     country: str
     postal_code: str
 
-
+    bids: List["Bid"] = Relationship(back_populates="user")
+    auctions: List["Auction"] = Relationship(back_populates="user")
 
     class Config:
         orm_mode = True

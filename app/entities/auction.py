@@ -8,6 +8,7 @@ class AuctionBase(SQLModel):
     end_date: datetime
     min_bid_increment: float = 1.0
     item_id: int = Field(foreign_key="item.id")
+    user_id: int = Field(foreign_key="user.id")
 
 
 class Auction(AuctionBase, table=True):
@@ -18,6 +19,8 @@ class Auction(AuctionBase, table=True):
     # Instead of using a foreign key, we'll track the winning bid ID as a normal field
     winning_bid_id: Optional[int] = None
     
+    user: "User" = Relationship(back_populates="auctions")
+
     # Relationships
     item: "Item" = Relationship(back_populates="auctions")
     
@@ -37,6 +40,8 @@ class AuctionRead(AuctionBase):
     is_active: bool
     created_at: datetime
     winning_bid_id: Optional[int] = None
+    user_id: int
+    item_id: int
 
 
 class AuctionUpdate(SQLModel):

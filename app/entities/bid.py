@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -14,8 +14,11 @@ class Bid(BidBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.now)
     
-    # Relationships
-    auction: "Auction" = Relationship(back_populates="bids")
+    # Relationship to the auction this bid belongs to
+    auction: "Auction" = Relationship(
+        back_populates="bids",
+        sa_relationship_kwargs={"foreign_keys": "[Bid.auction_id]"}
+    )
 
 
 class BidCreate(BidBase):

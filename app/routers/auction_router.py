@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
+from fastapi import BackgroundTasks
 
 from ..services.db import get_db
+from ..services.auction_service import (
+    determine_winner,
+    process_ended_auctions,
+    get_auction_with_winner
+)
 from ..entities.auction import Auction, AuctionCreate, AuctionRead, AuctionUpdate
 
 router = APIRouter(
@@ -68,3 +74,29 @@ def delete_auction(auction_id: int, db: Session = Depends(get_db)):
     db.commit()
     return None
 
+
+@router.get("/{auction_id}/status", response_model=dict)
+def get_auction_status(auction_id: int, db: Session = Depends(get_db)):
+    """Get detailed status of an auction, including winner information if ended"""
+    result = get_auction_with_winner(db, auction_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Auction not found")
+    return result
+
+
+@router.post("/{auction_id}/end", response_model=dict)
+def end_auction_manually(auction_id: int, db: Session = Depends(get_db)):
+    """Manually end an auction and determine the winner"""
+    auction = db.get(Auction, auction_id)
+    if not auction:
+        raise HTTPException(status_code=404, detail="Auction not found")
+    
+    if not auction.is_active:
+        raise HTTPException(status_code=400, detail="Auction is already ended")
+    
+    winner = determine_winner(db, auction_id)
+    
+    if winner:
+        return winner
+    else:
+        return {"message": "Auction ended, no bids were placed"}

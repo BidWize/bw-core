@@ -1,12 +1,13 @@
 from pydantic import BaseModel
-
-
+from app.entities.user import UserRole  # Import the role enum
+from typing import Optional
 
 # Request model to create a new user.
 class UserCreate(BaseModel):
     username: str
     email: str
-    password: str
+    password: str  # Plain text for now
+    role: UserRole  # Choose 'buyer' or 'seller'
     street: str
     city: str
     country: str
@@ -28,5 +29,10 @@ class UserAuthenticate(BaseModel):
 
 # Request model to update a user.
 class UserUpdate(BaseModel):
-    username: str
-    email: str
+    username: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[UserRole] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None

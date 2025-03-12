@@ -1,10 +1,16 @@
 from pydantic import BaseModel
 
+
+
 # Request model to create a new user.
 class UserCreate(BaseModel):
     username: str
     email: str
     password: str
+    street: str
+    city: str
+    country: str
+    postal_code: str
 
 # Response model for a user.
 class UserResponse(BaseModel):

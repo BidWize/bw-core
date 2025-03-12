@@ -1,7 +1,9 @@
 from sqlmodel import Session, select
 from app.entities.user import User
 from fastapi import HTTPException
-
+from datetime import datetime
+from app.entities.bid import Bid
+from app.entities.auction import Auction
 
 def get_all_users(db: Session):
     statement = select(User)
@@ -32,6 +34,15 @@ def search_users_in_db(db: Session, query: str):
     )
     results = db.exec(statement)
     return results.all()
+
+def has_active_bids(db: Session, user_id: int) -> bool:
+    """Check if a user has active bids in auctions that haven't ended yet."""
+    statement = (
+        select(Bid)
+        .join(Auction, Auction.id == Bid.auction_id)
+        .where(Bid.user_id == user_id, Auction.end_date > datetime.utcnow())
+    )
+    return db.exec(statement).first() is not None  # Returns True if any active bids exist    
     
 
 def create_user_in_db(db: Session, user):

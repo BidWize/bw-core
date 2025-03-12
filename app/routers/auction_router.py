@@ -10,6 +10,7 @@ from ..services.auction_service import (
     get_auction_with_winner
 )
 from ..entities.auction import Auction, AuctionCreate, AuctionRead, AuctionUpdate
+from ..services.user import get_user_by_id, get_user_role
 
 router = APIRouter(
     prefix="/auctions",
@@ -19,6 +20,14 @@ router = APIRouter(
 
 @router.post("/", response_model=AuctionRead, status_code=status.HTTP_201_CREATED)
 def create_auction(auction: AuctionCreate, db: Session = Depends(get_db)):
+    if auction.start_date >= auction.end_date:
+        raise HTTPException(
+            status_code=400, detail="End date must be after start date"
+        )
+    if get_user_by_id(db, auction.user_id) is None:
+        raise HTTPException(status_code=400, detail="User not found")
+    if get_user_role(db, auction.user_id) != "seller":
+        raise HTTPException(status_code=400, detail="User must be a seller")
     db_auction = Auction.model_validate(auction)
     db.add(db_auction)
     db.commit()

@@ -5,6 +5,7 @@ from typing import List
 from ..services.db import get_db
 from ..entities.bid import Bid, BidCreate, BidRead, BidUpdate
 from ..entities.auction import Auction
+from ..services.user import get_user_by_id, get_user_role
 
 router = APIRouter(
     prefix="/bids",
@@ -20,6 +21,10 @@ def create_bid(bid: BidCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Auction not found")
     if not auction.is_active:
         raise HTTPException(status_code=400, detail="Auction is not active")
+    if get_user_by_id(db, bid.user_id) is None:
+        raise HTTPException(status_code=400, detail="User not found")
+    if get_user_role(db, bid.user_id) != "buyer":
+        raise HTTPException(status_code=400, detail="User must be a buyer")
     
     # Find the highest bid for this auction
     highest_bid_query = select(Bid).where(Bid.auction_id == bid.auction_id).order_by(Bid.amount.desc())

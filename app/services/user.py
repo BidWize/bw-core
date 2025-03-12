@@ -66,3 +66,8 @@ def create_user_in_db(db: Session, user):
     )
     return create_user(db, db_user)
 
+def get_user_role(db: Session, user_id: int):
+    user = db.get(User, user_id)
+    if user:
+        return user.role
+    return None

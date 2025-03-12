@@ -100,3 +100,9 @@ def end_auction_manually(auction_id: int, db: Session = Depends(get_db)):
         return winner
     else:
         return {"message": "Auction ended, no bids were placed"}
+    
+@router.post("/process-ended", response_model=dict)
+def process_ended_auctions_route(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+        """Process all auctions that have ended"""
+        count = process_ended_auctions(db)
+        return {"message": f"Processed {count} ended auctions"}

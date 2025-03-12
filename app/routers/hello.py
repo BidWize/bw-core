@@ -5,7 +5,6 @@ router = APIRouter(
     tags=["hello"],
 )
 
-
 @router.get("/")
 def hello():
     return {"message": "Hello, World!"}

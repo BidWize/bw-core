@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.entities.user import UserRole  # Import the role enum
 from typing import Optional
 from typing import List
@@ -10,7 +10,7 @@ from datetime import datetime
 class UserCreate(BaseModel):
     username: str
     email: str
-    password: str  # Plain text for now
+    password: str = Field(..., example="string@12345")
     role: UserRole  # Choose 'buyer' or 'seller'
     street: str
     city: str

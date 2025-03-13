@@ -19,6 +19,7 @@ class User(SQLModel, table=True):
     city: str
     country: str
     postal_code: str
+    
 
     bids: List["Bid"] = Relationship(back_populates="user")
     auctions: List["Auction"] = Relationship(back_populates="user")

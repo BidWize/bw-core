@@ -1,13 +1,13 @@
 from app.entities.payment import Payment
-from app.models.payment import Payment as PaymentModel
+#from app.models.payment import Payment as PaymentModel
 from sqlalchemy.orm import Session
-from app.schemas.payment import PaymentRequest
+from app.models.payment_model import PaymentRequest
 
 class PaymentService:
     @staticmethod
     def process_payment(db: Session, payment_data: PaymentRequest):
         # Example logic for processing payment
-        payment = PaymentModel(
+        payment = PaymentRequest(
             card_number=payment_data.card_number,
             card_holder_name=payment_data.card_holder_name,
             expiry_date=payment_data.expiry_date,

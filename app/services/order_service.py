@@ -42,3 +42,55 @@ class OrderService:
         )
 
         return order_response
+    
+    
+    @staticmethod
+    def add_order(db: Session, order_data: OrderRequest):
+        new_order = OrderModel(
+            user_name=order_data.user_name,
+            street_address=order_data.street_address,
+            phone_number=order_data.phone_number,
+            province=order_data.province,
+            country=order_data.country,
+            postal_code=order_data.postal_code,
+            total_paid=order_data.total_paid,
+            item_id=order_data.item_id
+        )
+
+        db.add(new_order)
+        db.commit()
+        db.refresh(new_order)
+
+        return {"message": "Order successfully added", "order_id": new_order.id}
+    
+    @staticmethod
+    def add_order_from_auction(db: Session, auction_id: int, total_paid: float, item_id: int):
+        # Get auction details with winner info
+        auction_details = get_auction_with_winner(db, auction_id)
+        if not auction_details or "winner" not in auction_details:
+            raise HTTPException(status_code=404, detail="Auction winner not found")
+
+        winner_id = auction_details["winner"]["user_id"]
+
+        # Get user details for the winner
+        winner_info = get_user_by_id(db, winner_id)
+        if not winner_info:
+            raise HTTPException(status_code=404, detail="Winner details not found")
+
+        # Create and add the order
+        new_order = OrderModel(
+            user_name=winner_info.username,
+            street_address=winner_info.street,
+            phone_number=getattr(winner_info, 'phone_number', "N/A"),
+            province=winner_info.city,  # Assuming city is used for province in your data
+            country=winner_info.country,
+            postal_code=winner_info.postal_code,
+            total_paid=total_paid,
+            item_id=item_id
+        )
+
+        db.add(new_order)
+        db.commit()
+        db.refresh(new_order)
+
+        return {"message": "Order successfully added", "order_id": new_order.id}

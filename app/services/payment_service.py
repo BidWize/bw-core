@@ -1,22 +1,24 @@
-from app.entities.payment import Payment
-#from app.models.payment import Payment as PaymentModel
 from sqlalchemy.orm import Session
-from app.models.payment_model import PaymentRequest
+from app.entities.paymentmethod import PaymentMethod
+from app.services.payment_verification_service import PaymentVerificationService
 
 class PaymentService:
     @staticmethod
-    def process_payment(db: Session, payment_data: PaymentRequest):
-        # Example logic for processing payment
-        payment = PaymentRequest(
-            card_number=payment_data.card_number,
-            card_holder_name=payment_data.card_holder_name,
-            expiry_date=payment_data.expiry_date,
-            security_code=payment_data.security_code
+    def add_payment_method(db: Session, card_number: str, card_holder_name: str, expiry_date: str, security_code: str) -> bool:
+        # Verify payment
+        is_valid = PaymentVerificationService.verify_payment_info(
+            db, card_number, card_holder_name, expiry_date, security_code
         )
 
-        # Save to database
-        db.add(payment)
-        db.commit()
-        db.refresh(payment)
+        # Create PaymentMethod entry
+        new_payment = PaymentMethod(
+            last_four_digits=card_number[-4:],  
+            card_brand="Visa" if card_number.startswith("4") else "MasterCard",  
+            payment_status="Completed" if is_valid else "Failed"
+        )
 
-        return {"message": "Payment processed successfully", "payment_id": payment.id}
+        db.add(new_payment)
+        db.commit()
+        db.refresh(new_payment)
+
+        return is_valid

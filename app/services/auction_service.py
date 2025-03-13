@@ -94,9 +94,8 @@ def get_auction_with_winner(db: Session, auction_id: int) -> Dict[str, Any]:
         if winning_bid:
             result["winner"] = {
                 "bid_id": winning_bid.id,
+                "user_id": winning_bid.user_id,
                 "amount": winning_bid.amount,
-                "bidder_name": winning_bid.bidder_name,
-                "bidder_email": winning_bid.bidder_email
             }
     
     return result

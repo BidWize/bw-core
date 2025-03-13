@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Session, create_engine
 from ..entities import *
 from dotenv import load_dotenv
+
 import os
 
 load_dotenv()

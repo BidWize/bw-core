@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 # Pydantic model for Order request
-class OrderRequest(BaseModel):
+class Order(BaseModel):
     user_name: str  # The name of the user placing the order
     street_address: str  # The user's street address
     phone_number: str  # The user's phone number

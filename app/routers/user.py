@@ -10,7 +10,6 @@ from typing import Optional
 from app.models.user import UserAuthenticate
 from datetime import datetime, timedelta
 from fastapi import BackgroundTasks
-
 from app.models.user import UserProfileResponse
 
 
@@ -168,7 +167,6 @@ def search_users(query: Optional[str] = None, role: Optional[UserRole] = None, d
 
 
 
-
 # Temporary storage for failed login attempts
 failed_login_attempts = {}
 
@@ -205,4 +203,5 @@ def login(user_data: UserAuthenticate, db: Session = Depends(get_db), background
     background_tasks.add_task(reset_failed_attempts, user.username)
 
     return user
+
 

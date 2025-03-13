@@ -4,8 +4,10 @@ from fastapi import HTTPException
 from datetime import datetime
 from app.entities.bid import Bid
 from app.entities.auction import Auction
+
 from app.services.security import hash_password, verify_password
 import re
+
 
 def get_all_users(db: Session):
     statement = select(User)
@@ -84,4 +86,10 @@ def create_user_in_db(db: Session, user):
     )
     return create_user(db, db_user)
 
+
+def get_user_role(db: Session, user_id: int):
+    user = db.get(User, user_id)
+    if user:
+        return user.role
+    return None
 

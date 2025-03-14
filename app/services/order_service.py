@@ -31,6 +31,7 @@ class OrderService:
 
         # Return the formatted order details
         order_response = OrderModel(
+            user_id=user.id,
             user_name=user.username,
             street_address=user.street,
             phone_number=order.phone_number,

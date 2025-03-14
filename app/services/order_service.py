@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.order import Order as OrderModel
+from app.entities.order import Order as OrderModel
 from app.services.auction_service import get_auction_with_winner
 from app.services.user import get_user_by_id
 from fastapi import HTTPException
@@ -82,7 +82,7 @@ class OrderService:
             user_name=winner_info.username,
             street_address=winner_info.street,
             phone_number=getattr(winner_info, 'phone_number', "N/A"),
-            province=winner_info.city,  # Assuming city is used for province in your data
+            province=winner_info.city,  
             country=winner_info.country,
             postal_code=winner_info.postal_code,
             total_paid=total_paid,

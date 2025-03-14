@@ -1,6 +1,7 @@
 from sqlmodel import Field, SQLModel, Relationship
 from enum import Enum
-from typing import List
+from typing import List, ClassVar
+from sqlalchemy.orm import relationship
 
 
 class UserRole(str, Enum):
@@ -23,6 +24,7 @@ class User(SQLModel, table=True):
 
     bids: List["Bid"] = Relationship(back_populates="user")
     auctions: List["Auction"] = Relationship(back_populates="user")
+    orders: List["Order"] = Relationship(back_populates="user")
 
     class Config:
         orm_mode = True

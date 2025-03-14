@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
 from fastapi import BackgroundTasks
-
+from datetime import datetime, timedelta
+from ..entities.bid import Bid
+from ..entities.item import Item
+from ..entities.user import User
 from ..services.db import get_db
 from ..services.auction_service import (
     determine_winner,
@@ -115,3 +118,102 @@ def process_ended_auctions_route(background_tasks: BackgroundTasks, db: Session 
         """Process all auctions that have ended"""
         count = process_ended_auctions(db)
         return {"message": f"Processed {count} ended auctions"}
+
+
+@router.post("/create-sample", response_model=dict, tags=["development"])
+def create_sample_auction(db: Session = Depends(get_db)):
+    """Creates a sample ended auction with a seller, item, and multiple bids for testing"""
+    
+    # Create a seller
+    seller = User(
+        username="sample_seller",
+        email="seller@example.com",
+        password="sample_password",
+        is_active=True,
+        is_admin=False,
+        role="seller",
+        street="123 Seller St",
+        city="Seller City",
+        country="Seller Country",
+        postal_code="12345"
+    )
+    db.add(seller)
+    db.flush()
+
+    # Create a bidder
+    bidder = User(
+        username="sample_bidder",
+        email="bidder@example.com",
+        password="sample_password",
+        is_active=True,
+        is_admin=False,
+        role="buyer",
+        street="456 Bidder St",
+        city="Bidder City",
+        country="Bidder Country",
+        postal_code="67890"
+    )
+    db.add(bidder)
+    db.flush()
+    
+    # Create an item with a non-null initial_price value
+    item = Item(
+        name="Sample Item",
+        description="A test item for the sample auction",
+        initial_price=100.0,
+        user_id=seller.id,
+        image_url="https://via.placeholder.com/150",
+    )
+    db.add(item)
+    db.flush()
+
+    # Create an auction that ended 1 hour ago
+    end_time = datetime.utcnow() - timedelta(hours=1)
+    start_time = end_time - timedelta(days=1)
+    
+    auction = Auction(
+        start_date=start_time,
+        end_date=end_time,
+        min_bid_increment=10.0,
+        item_id=item.id,
+        user_id=seller.id,
+        is_active=False,  # Auction ended
+        winning_bid_id=None,
+    )
+    db.add(auction)
+    db.flush()
+
+    # Create some bids with the required bidder_name and bidder_email
+    bid1 = Bid(
+        amount=120.0,
+        bidder_name=bidder.username,
+        bidder_email=bidder.email,
+        user_id=bidder.id,
+        auction_id=auction.id,
+        created_at=start_time + timedelta(hours=2)
+    )
+    db.add(bid1)
+
+    winning_bid = Bid(
+        amount=150.0,
+        bidder_name=bidder.username,
+        bidder_email=bidder.email,
+        user_id=bidder.id,
+        auction_id=auction.id,
+        created_at=start_time + timedelta(hours=4)
+    )
+    db.add(winning_bid)
+    db.flush()
+
+    # Set the winning bid for the auction
+    auction.winning_bid_id = winning_bid.id
+    db.commit()
+
+    return {
+        "message": "Sample auction created successfully",
+        "auction_id": auction.id,
+        "seller_id": seller.id,
+        "bidder_id": bidder.id,
+        "winning_bid_id": winning_bid.id,
+        "item_id": item.id
+    }

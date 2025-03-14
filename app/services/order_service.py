@@ -44,24 +44,24 @@ class OrderService:
         return order_response
     
     
-    @staticmethod
-    def add_order(db: Session, order_data: OrderRequest):
-        new_order = OrderModel(
-            user_name=order_data.user_name,
-            street_address=order_data.street_address,
-            phone_number=order_data.phone_number,
-            province=order_data.province,
-            country=order_data.country,
-            postal_code=order_data.postal_code,
-            total_paid=order_data.total_paid,
-            item_id=order_data.item_id
-        )
+    # @staticmethod
+    # def add_order(db: Session, order_data: OrderRequest):
+    #     new_order = OrderModel(
+    #         user_name=order_data.user_name,
+    #         street_address=order_data.street_address,
+    #         phone_number=order_data.phone_number,
+    #         province=order_data.province,
+    #         country=order_data.country,
+    #         postal_code=order_data.postal_code,
+    #         total_paid=order_data.total_paid,
+    #         item_id=order_data.item_id
+    #     )
 
-        db.add(new_order)
-        db.commit()
-        db.refresh(new_order)
+    #     db.add(new_order)
+    #     db.commit()
+    #     db.refresh(new_order)
 
-        return {"message": "Order successfully added", "order_id": new_order.id}
+    #     return {"message": "Order successfully added", "order_id": new_order.id}
     
     @staticmethod
     def add_order_from_auction(db: Session, auction_id: int, total_paid: float, item_id: int):

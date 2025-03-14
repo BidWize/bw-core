@@ -12,12 +12,12 @@ def get_order_by_auction(auction_id: int, db: Session = Depends(get_db)):
     except HTTPException as e:
         raise e
 
-@router.post("/orders/", response_model=dict)
-def create_order(order_data: OrderRequest, db: Session = Depends(get_db)):
-    try:
-        return OrderService.add_order(db, order_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.post("/orders/", response_model=dict)
+# def create_order(order_data: OrderRequest, db: Session = Depends(get_db)):
+#     try:
+#         return OrderService.add_order(db, order_data)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/orders/auction/add/{auction_id}", response_model=dict)
 def create_order_from_auction(

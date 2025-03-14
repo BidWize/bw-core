@@ -79,6 +79,7 @@ class OrderService:
 
         # Create and add the order
         new_order = OrderModel(
+            user_id=winner_info.id,
             user_name=winner_info.username,
             street_address=winner_info.street,
             phone_number=getattr(winner_info, 'phone_number', "N/A"),
